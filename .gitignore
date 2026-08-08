@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+*.pyc
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# macOS
+.DS_Store
+
+# IDE/editor
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# System files
+*.swp
+
+data/texas_divorces.sqlite3

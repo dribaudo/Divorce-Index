@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Divorce Database</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
+<body><main><h1>Texas Divorce Database</h1><p class="intro">Texas divorce-index records, 1968–2017</p>
+<form method="get">
+  <label>Name keyword
+    <input name="q" value="{{ query }}" placeholder="Search petitioner or respondent">
+  </label>
+  <label>Year
+    <select name="year"><option value="">All years</option>{% for item in years %}<option value="{{ item[0] }}" {% if item[0] == year %}selected{% endif %}>{{ item[0] }}</option>{% endfor %}</select>
+  </label>
+  <label>County filter
+    <select name="county"><option value="">All counties</option>{% for item in counties %}<option value="{{ item[0] }}" {% if item[0] == county %}selected{% endif %}>{{ item[0] }}</option>{% endfor %}</select>
+  </label>
+  <button>Search</button>
+</form>
+{% if searched %}
+<p class="count">{{ '{:,}'.format(total) }} matching records</p>
+<div class="table-wrap"><table><thead><tr><th>Petitioner</th><th>Age</th><th>Respondent</th><th>Age</th><th>County</th><th>Marriage</th><th>Dissolved</th><th>Children</th></tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.petitioner }}</td><td>{{ row.petitioner_age }}</td><td>{{ row.respondent }}</td><td>{{ row.respondent_age }}</td><td>{{ row.county_name }}</td><td>{{ row.marriage_date }}</td><td>{{ row.dissolution_date }}</td><td>{{ row.children_under_18 }}</td></tr>{% else %}<tr><td colspan="8">No records found.</td></tr>{% endfor %}</tbody></table></div>
+{% if page > 1 %}<a href="{{ url_for('index', q=query, county=county, year=year, page=page-1) }}">Previous</a>{% endif %}{% if page * page_size < total %}<a class="next" href="{{ url_for('index', q=query, county=county, year=year, page=page+1) }}">Next</a>{% endif %}
+{% else %}
+<p class="prompt">Enter a name keyword, choose a year or county, then select Search to view records.</p>
+{% endif %}</main></body></html>

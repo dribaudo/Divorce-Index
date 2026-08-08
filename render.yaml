@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: texas-divorce-database
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    healthCheckPath: /
