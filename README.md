@@ -15,25 +15,45 @@ Open the local address printed by Flask.
 
 Enter a name keyword to search the **Petitioner** and **Respondent** name fields. Optionally limit the results by year or county. You can also leave the name keyword blank and select a year and/or county to browse that subset. No records appear until you provide one of those search limits.
 
-## Deploy with the database
+## Deploy with a managed database
 
-This project does not include the SQLite database file in git. To deploy with the database:
+This project can now run against a managed SQL database instead of a local SQLite file.
 
-- Upload a trimmed database asset to GitHub Releases or another direct-download host.
-- Use a release asset URL for `DATABASE_URL`.
-- Render will download the database during build before launching the app.
+### Recommended workflow
 
-For example, if you upload a trimmed database asset named `texas_divorces.sqlite3`:
+1. Create a managed database service:
+   - Render Postgres
+   - ElephantSQL
+   - Supabase
+   - Railway Postgres
+2. Set the managed database URL in Render as `DATABASE_URL`.
+3. Deploy the app with the database connection.
 
-- `DATABASE_URL` should be the release download URL for that file.
-- You can also set `DATABASE_FILENAME` if you use a different file name.
+### Migrate local data to the managed database
 
-Example environment variables:
+Run this locally after setting `DATABASE_URL` to your managed DB connection string:
 
-- `DATABASE_URL=https://github.com/dribaudo/Divorce-Index/releases/download/v1.0/texas_divorces.sqlite3`
-- `DATABASE_FILENAME=texas_divorces.sqlite3`
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+export DATABASE_URL="<your-managed-db-url>"
+python migrate_to_managed.py
+```
 
-This keeps the app lightweight while preserving all fields used by the search UI.
+This copies the current local SQLite `data/texas_divorces.sqlite3` data into the managed database and creates indexes used by the app.
+
+### Render service settings
+
+- `Build Command`: `pip install -r requirements.txt`
+- `Start Command`: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 1 --timeout 120`
+- `Environment Variables`:
+  - `DATABASE_URL=<your-managed-db-url>`
+
+### Notes
+
+- The app now connects to `DATABASE_URL` first. If unset, it still falls back to local `data/texas_divorces.sqlite3`.
+- Keep `DATABASE_FILENAME` only if your local fallback file name differs from `texas_divorces.sqlite3`.
 
 ## Import another year
 
