@@ -29,3 +29,4 @@ env/
 *.swp
 
 data/texas_divorces.sqlite3
+data/texas_divorces_trimmed.sqlite3

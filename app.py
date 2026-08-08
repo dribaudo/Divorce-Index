@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 
 from flask import Flask, g, render_template, request
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "data" / "texas_divorces.sqlite3"
+DATABASE_FILENAME = os.environ.get("DATABASE_FILENAME", "texas_divorces.sqlite3")
+DATABASE = BASE_DIR / "data" / DATABASE_FILENAME
 PAGE_SIZE = 50
 
 app = Flask(__name__)

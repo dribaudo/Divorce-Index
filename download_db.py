@@ -6,7 +6,8 @@ import urllib.request
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "data" / "texas_divorces.sqlite3"
+DATABASE_FILENAME = os.environ.get("DATABASE_FILENAME", "texas_divorces.sqlite3")
+DATABASE = BASE_DIR / "data" / DATABASE_FILENAME
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE.exists():

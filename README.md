@@ -17,11 +17,23 @@ Enter a name keyword to search the **Petitioner** and **Respondent** name fields
 
 ## Deploy with the database
 
-This project does not include the 966MB SQLite database in git. To deploy with the database:
+This project does not include the SQLite database file in git. To deploy with the database:
 
-- Host `data/texas_divorces.sqlite3` at a public URL or object storage location.
-- Set the `DATABASE_URL` environment variable to that file URL.
-- Render will download the database on startup before launching the app.
+- Upload a trimmed database asset to GitHub Releases or another direct-download host.
+- Use a release asset URL for `DATABASE_URL`.
+- Render will download the database during build before launching the app.
+
+For example, if you upload a trimmed database asset named `texas_divorces.sqlite3`:
+
+- `DATABASE_URL` should be the release download URL for that file.
+- You can also set `DATABASE_FILENAME` if you use a different file name.
+
+Example environment variables:
+
+- `DATABASE_URL=https://github.com/dribaudo/Divorce-Index/releases/download/v1.0/texas_divorces.sqlite3`
+- `DATABASE_FILENAME=texas_divorces.sqlite3`
+
+This keeps the app lightweight while preserving all fields used by the search UI.
 
 ## Import another year
 
