@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import os
-import sqlite3
 from pathlib import Path
 
 from flask import Flask, g, render_template, request
+from sqlalchemy import text
+
+from db import get_engine
 
 BASE_DIR = Path(__file__).resolve().parent
 DATABASE_FILENAME = os.environ.get("DATABASE_FILENAME", "texas_divorces.sqlite3")
@@ -12,12 +14,12 @@ DATABASE = BASE_DIR / "data" / DATABASE_FILENAME
 PAGE_SIZE = 50
 
 app = Flask(__name__)
+engine = get_engine()
 
 
-def get_db() -> sqlite3.Connection:
+def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
+        g.db = engine.connect()
     return g.db
 
 
@@ -38,17 +40,17 @@ def index():
     except ValueError:
         page = 1
 
-    clauses, params = [], []
+    clauses, params = [], {}
     if query:
         pattern = f"%{query}%"
-        clauses.append("(petitioner LIKE ? OR respondent LIKE ?)")
-        params.extend([pattern, pattern])
+        clauses.append("(petitioner LIKE :pattern OR respondent LIKE :pattern)")
+        params["pattern"] = pattern
     if county:
-        clauses.append("county_name = ?")
-        params.append(county)
+        clauses.append("county_name = :county")
+        params["county"] = county
     if year:
-        clauses.append("source_year = ?")
-        params.append(year)
+        clauses.append("source_year = :year")
+        params["year"] = year
     searched = bool(clauses)
     where = f" WHERE {' AND '.join(clauses)}" if searched else ""
 
@@ -56,13 +58,15 @@ def index():
     total = 0
     rows = []
     if searched:
-        total = db.execute(f"SELECT COUNT(*) FROM divorces{where}", params).fetchone()[0]
+        total = int(db.execute(text(f"SELECT COUNT(*) FROM divorces{where}"), params).scalar_one())
         rows = db.execute(
-            f"SELECT petitioner, petitioner_age, respondent, respondent_age, children_under_18, marriage_date, dissolution_date, county_name FROM divorces{where} ORDER BY dissolution_date, file_number LIMIT ? OFFSET ?",
-            [*params, PAGE_SIZE, (page - 1) * PAGE_SIZE],
-        ).fetchall()
-    counties = db.execute("SELECT DISTINCT county_name FROM divorces WHERE county_name <> '' ORDER BY county_name").fetchall()
-    years = db.execute("SELECT DISTINCT source_year FROM divorces ORDER BY source_year DESC").fetchall()
+            text(
+                f"SELECT petitioner, petitioner_age, respondent, respondent_age, children_under_18, marriage_date, dissolution_date, county_name FROM divorces{where} ORDER BY dissolution_date LIMIT :limit OFFSET :offset"
+            ),
+            {**params, "limit": PAGE_SIZE, "offset": (page - 1) * PAGE_SIZE},
+        ).mappings().all()
+    counties = db.execute(text("SELECT DISTINCT county_name FROM divorces WHERE county_name <> '' ORDER BY county_name")).scalars().all()
+    years = db.execute(text("SELECT DISTINCT source_year FROM divorces ORDER BY source_year DESC")).scalars().all()
     return render_template("index.html", rows=rows, counties=counties, total=total, page=page,
                            page_size=PAGE_SIZE, query=query, county=county, year=year,
                            years=years, searched=searched)
