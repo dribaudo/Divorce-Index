@@ -15,6 +15,14 @@ Open the local address printed by Flask.
 
 Enter a name keyword to search the **Petitioner** and **Respondent** name fields. Optionally limit the results by year or county. You can also leave the name keyword blank and select a year and/or county to browse that subset. No records appear until you provide one of those search limits.
 
+## Deploy with the database
+
+This project does not include the 966MB SQLite database in git. To deploy with the database:
+
+- Host `data/texas_divorces.sqlite3` at a public URL or object storage location.
+- Set the `DATABASE_URL` environment variable to that file URL.
+- Render will download the database on startup before launching the app.
+
 ## Import another year
 
 ```bash
