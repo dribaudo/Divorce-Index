@@ -42,9 +42,13 @@ def index():
 
     clauses, params = [], {}
     if query:
-        pattern = f"%{query.lower()}%"
-        clauses.append("(LOWER(petitioner) LIKE :pattern OR LOWER(respondent) LIKE :pattern)")
-        params["pattern"] = pattern
+        combined_field = "LOWER(petitioner || ' ' || respondent)"
+        terms = [term for term in query.lower().split() if term]
+        for idx, term in enumerate(terms, start=1):
+            pattern = f"%{term}%"
+            param_name = f"pattern_{idx}"
+            clauses.append(f"{combined_field} LIKE :{param_name}")
+            params[param_name] = pattern
     if county:
         clauses.append("county_name = :county")
         params["county"] = county
