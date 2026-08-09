@@ -42,8 +42,8 @@ def index():
 
     clauses, params = [], {}
     if query:
-        pattern = f"%{query}%"
-        clauses.append("(petitioner LIKE :pattern OR respondent LIKE :pattern)")
+        pattern = f"%{query.lower()}%"
+        clauses.append("(LOWER(petitioner) LIKE :pattern OR LOWER(respondent) LIKE :pattern)")
         params["pattern"] = pattern
     if county:
         clauses.append("county_name = :county")
