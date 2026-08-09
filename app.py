@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask, g, render_template, request
@@ -96,6 +97,20 @@ def index():
             ),
             {**params, "limit": PAGE_SIZE, "offset": (page - 1) * PAGE_SIZE},
         ).mappings().all()
+        def normalize_date(value: str) -> str:
+            if not value:
+                return "Unknown"
+            for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m-%d-%Y", "%Y/%m/%d", "%d-%m-%Y"):
+                try:
+                    parsed = datetime.strptime(value.strip(), fmt)
+                    return parsed.strftime("%m/%d/%Y")
+                except ValueError:
+                    continue
+            return "Unknown"
+
+        for row in rows:
+            row["marriage_date"] = normalize_date(row["marriage_date"])
+            row["dissolution_date"] = normalize_date(row["dissolution_date"])
     counties = db.execute(text("SELECT DISTINCT county_name FROM divorces WHERE county_name <> '' ORDER BY county_name")).scalars().all()
     years = db.execute(text("SELECT DISTINCT source_year FROM divorces ORDER BY source_year DESC")).scalars().all()
     return render_template(
