@@ -29,7 +29,7 @@
       {{ sort_link('marriage_date', 'Marriage') }}
       {{ sort_link('dissolution_date', 'Dissolved') }}
       {{ sort_link('children', 'Children') }}
-    </tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.petitioner }}</td><td>{{ row.petitioner_age }}</td><td>{{ row.respondent }}</td><td>{{ row.respondent_age }}</td><td>{{ row.county_name }}</td><td>{{ row.marriage_date }}</td><td>{{ row.dissolution_date }}</td><td>{{ row.children_under_18 }}</td></tr>{% else %}<tr><td colspan="8">No records found.</td></tr>{% endfor %}</tbody></table></div>
+    </tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.petitioner }}</td><td>{% set petitioner_age = row.petitioner_age|string %}{% if petitioner_age|trim and petitioner_age|int != 0 %}{{ petitioner_age|int }}{% else %}Unknown{% endif %}</td><td>{{ row.respondent }}</td><td>{% set respondent_age = row.respondent_age|string %}{% if respondent_age|trim and respondent_age|int != 0 %}{{ respondent_age|int }}{% else %}Unknown{% endif %}</td><td>{{ row.county_name }}</td><td>{{ row.marriage_date }}</td><td>{{ row.dissolution_date }}</td><td>{% if row.children_under_18 is not none and row.children_under_18 != '' %}{{ row.children_under_18|int }}{% endif %}</td></tr>{% else %}<tr><td colspan="8">No records found.</td></tr>{% endfor %}</tbody></table></div>
 <nav class="pagination">
   {% if page > 1 %}<a href="{{ url_for('index', q=query, county=county, year=year, sort=sort, direction=direction, page=page-1) }}">Previous</a>{% endif %}
   <form method="get" class="page-select">
