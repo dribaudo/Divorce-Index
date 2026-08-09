@@ -97,6 +97,8 @@ def index():
             ),
             {**params, "limit": PAGE_SIZE, "offset": (page - 1) * PAGE_SIZE},
         ).mappings().all()
+        rows = [dict(row) for row in rows]
+
         def normalize_date(value: str) -> str:
             if not value:
                 return "Unknown"
