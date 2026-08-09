@@ -12,6 +12,10 @@ DEFAULT_SQLITE = BASE_DIR / "data" / "texas_divorces.sqlite3"
 DATABASE_URL = os.environ.get("DATABASE_URL")
 
 if DATABASE_URL:
+    if DATABASE_URL.startswith("postgresql://"):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
+    elif DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
     ENGINE = create_engine(DATABASE_URL, future=True, poolclass=NullPool)
 else:
     sqlite_url = f"sqlite:///{DEFAULT_SQLITE}"
