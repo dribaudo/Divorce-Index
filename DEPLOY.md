@@ -28,6 +28,9 @@ git push -u origin main
 
 Then connect the repository to Render and set `DATABASE_URL` to your managed database connection string.
 
+Important: do not set Render to run `python download_db.py` at startup. This helper expects `DATABASE_URL` to be a download URL for a SQLite file, which is not the case for a Postgres connection string.
+Use the `gunicorn app:app` start command instead.
+
 If the repository was already initialized, do not run `git init` again. Use the existing repository.
 
 GitHub Free currently includes 10 GiB of Git LFS storage and 10 GiB/month of LFS bandwidth. The database is below the 2 GiB per-file Git LFS limit.

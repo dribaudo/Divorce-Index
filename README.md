@@ -52,7 +52,9 @@ This copies the current local SQLite `data/texas_divorces.sqlite3` data into the
 
 ### Notes
 
-- The app now connects to `DATABASE_URL` first. If unset, it will fall back to local `data/texas_divorces.sqlite3` for local development only.
+- The app connects directly to `DATABASE_URL`; it does not download a database file from that URL.
+- On Render, do not use `python download_db.py` or any helper that treats `DATABASE_URL` as a file download link.
+- If you are deploying to Render, set `DATABASE_URL` to the Postgres connection string and use the `gunicorn` start command above.
 - Do not commit the local SQLite database to the repository; it is ignored by `.gitignore`.
 
 ## Import another year
