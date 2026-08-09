@@ -17,13 +17,13 @@ Enter a name keyword to search the **Petitioner** and **Respondent** name fields
 
 ## Deploy with a managed database
 
-This project can now run against a managed SQL database instead of a local SQLite file.
+This project now runs against a managed Postgres database in production.
 
 ### Recommended workflow
 
 1. Create a managed database service:
    - Render Postgres
-   - ElephantSQL
+   - Neon Postgres
    - Supabase
    - Railway Postgres
 2. Set the managed database URL in Render as `DATABASE_URL`.
@@ -41,7 +41,7 @@ export DATABASE_URL="<your-managed-db-url>"
 python migrate_to_managed.py
 ```
 
-This copies the current local SQLite `data/texas_divorces.sqlite3` data into the managed database and creates indexes used by the app.
+This copies the current local SQLite `data/texas_divorces.sqlite3` data into the managed database. The current deployment path only creates a single `petitioner` index and skips additional indexes to stay within managed DB size limits.
 
 ### Render service settings
 
@@ -52,8 +52,8 @@ This copies the current local SQLite `data/texas_divorces.sqlite3` data into the
 
 ### Notes
 
-- The app now connects to `DATABASE_URL` first. If unset, it still falls back to local `data/texas_divorces.sqlite3`.
-- Keep `DATABASE_FILENAME` only if your local fallback file name differs from `texas_divorces.sqlite3`.
+- The app now connects to `DATABASE_URL` first. If unset, it will fall back to local `data/texas_divorces.sqlite3` for local development only.
+- Do not commit the local SQLite database to the repository; it is ignored by `.gitignore`.
 
 ## Import another year
 

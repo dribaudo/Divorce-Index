@@ -6,10 +6,10 @@
     <input name="q" value="{{ query }}" placeholder="Search petitioner or respondent">
   </label>
   <label>Year
-    <select name="year"><option value="">All years</option>{% for item in years %}<option value="{{ item[0] }}" {% if item[0] == year %}selected{% endif %}>{{ item[0] }}</option>{% endfor %}</select>
+    <select name="year"><option value="">All years</option>{% for item in years %}<option value="{{ item }}" {% if item == year %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
   </label>
   <label>County filter
-    <select name="county"><option value="">All counties</option>{% for item in counties %}<option value="{{ item[0] }}" {% if item[0] == county %}selected{% endif %}>{{ item[0] }}</option>{% endfor %}</select>
+    <select name="county"><option value="">All counties</option>{% for item in counties %}<option value="{{ item }}" {% if item == county %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
   </label>
   <button>Search</button>
 </form>

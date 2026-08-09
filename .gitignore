@@ -28,5 +28,10 @@ env/
 # System files
 *.swp
 
+# Local/export artifacts
+.neon
+data/divorces_export.csv
+git_*.txt
+
 data/texas_divorces.sqlite3
 data/texas_divorces_trimmed.sqlite3
