@@ -1,53 +1,124 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Texas Divorce Database</title><link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"></head>
-<body><main><h1><a href="{{ url_for('index') }}">Texas Divorce Database</a></h1><p class="intro">Texas Divorce Records from 1968 through 2017</p>
-<form method="get">
-  <label>Name keyword
-    <input name="q" value="{{ query }}" placeholder="Search petitioner or respondent">
-  </label>
-  <label>Year
-    <select name="year"><option value="">All years</option>{% for item in years %}<option value="{{ item }}" {% if item == year %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
-  </label>
-  <label>County filter
-    <select name="county"><option value="">All counties</option>{% for item in counties %}<option value="{{ item }}" {% if item == county %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
-  </label>
-  <button>Search</button>
-</form>
-{% if searched %}
-<p class="count">{{ '{:,}'.format(total) }} matching records</p>
-<div class="table-wrap"><table><thead><tr>
-      {% macro sort_link(field, label) -%}
-        {%- set dir = 'asc' if sort != field or direction == 'desc' else 'desc' -%}
-        {%- set active = 'active' if sort == field else '' -%}
-        <th><a class="sortable {{ active }}" href="{{ url_for('index', q=query, county=county, year=year, sort=field, direction=dir, page=1) }}">{{ label }}{% if sort == field %} {{ '▲' if direction == 'asc' else '▼' }}{% endif %}</a></th>
-      {%- endmacro %}
-      {{ sort_link('petitioner', 'Petitioner') }}
-      {{ sort_link('petitioner_age', 'Age') }}
-      {{ sort_link('respondent', 'Respondent') }}
-      {{ sort_link('respondent_age', 'Age') }}
-      {{ sort_link('county', 'County') }}
-      {{ sort_link('marriage_date', 'Marriage') }}
-      {{ sort_link('dissolution_date', 'Dissolved') }}
-      {{ sort_link('children', 'Children') }}
-    </tr></thead><tbody>{% for row in rows %}<tr><td>{{ row.petitioner }}</td><td>{% set petitioner_age = row.petitioner_age|string %}{% if petitioner_age|trim and petitioner_age|int != 0 %}{{ petitioner_age|int }}{% else %}Unknown{% endif %}</td><td>{{ row.respondent }}</td><td>{% set respondent_age = row.respondent_age|string %}{% if respondent_age|trim and respondent_age|int != 0 %}{{ respondent_age|int }}{% else %}Unknown{% endif %}</td><td>{{ row.county_name }}</td><td>{{ row.marriage_date }}</td><td>{{ row.dissolution_date }}</td><td>{% if row.children_under_18 is not none and row.children_under_18 != '' %}{% set children = row.children_under_18|int %}{% if children != 99 %}{{ children }}{% else %}Unknown{% endif %}{% endif %}</td></tr>{% else %}<tr><td colspan="8">No records found.</td></tr>{% endfor %}</tbody></table></div>
-<nav class="pagination">
-  {% if page > 1 %}<a href="{{ url_for('index', q=query, county=county, year=year, sort=sort, direction=direction, page=page-1) }}">Previous</a>{% endif %}
-  <form method="get" class="page-select">
-    <label>Jump to page
-      <select name="page" onchange="this.form.submit()">
-        {% for page_option in page_options %}
-          <option value="{{ page_option }}" {% if page_option == page %}selected{% endif %}>{{ page_option }}</option>
-        {% endfor %}
-      </select>
-    </label>
-    <input type="hidden" name="q" value="{{ query }}">
-    <input type="hidden" name="county" value="{{ county }}">
-    <input type="hidden" name="year" value="{{ year }}">
-    <input type="hidden" name="sort" value="{{ sort }}">
-    <input type="hidden" name="direction" value="{{ direction }}">
-  </form>
-  {% if page * page_size < total %}<a class="next" href="{{ url_for('index', q=query, county=county, year=year, sort=sort, direction=direction, page=page+1) }}">Next</a>{% endif %}
-</nav>
-{% else %}
-<p class="prompt">Enter a name keyword, choose a year or county, then select Search to view records.</p>
-{% endif %}</main></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Texas Divorce Database</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body>
+    <main>
+      <header class="hero">
+        <div>
+          <h1><a href="{{ url_for('index') }}">Texas Divorce Database</a></h1>
+          <p class="intro">Texas Divorce Records from 1968 through 2017</p>
+        </div>
+      </header>
+
+      <section class="search-panel">
+        <form method="get">
+          <div class="search-fields">
+            <label>
+              Name keyword
+              <input name="q" value="{{ query }}" placeholder="Search petitioner or respondent">
+            </label>
+            <label>
+              Year
+              <select name="year">
+                <option value="">All years</option>
+                {% for item in years %}
+                  <option value="{{ item }}" {% if item == year %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              County filter
+              <select name="county">
+                <option value="">All counties</option>
+                {% for item in counties %}
+                  <option value="{{ item }}" {% if item == county %}selected{% endif %}>{{ item }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+          <div class="search-actions">
+            <button>Search</button>
+          </div>
+        </form>
+      </section>
+
+      {% if searched %}
+      <section class="results-header">
+        <div>
+          <p class="count">{{ '{:,}'.format(total) }} matching records</p>
+          <p class="hint">Click any column header to sort results.</p>
+        </div>
+      </section>
+
+      <section class="results-table">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                {% macro sort_link(field, label) -%}
+                  {%- set dir = 'asc' if sort != field or direction == 'desc' else 'desc' -%}
+                  {%- set active = 'active' if sort == field else '' -%}
+                  <th><a class="sortable {{ active }}" href="{{ url_for('index', q=query, county=county, year=year, sort=field, direction=dir, page=1) }}">{{ label }}{% if sort == field %} {{ '▲' if direction == 'asc' else '▼' }}{% endif %}</a></th>
+                {%- endmacro %}
+                {{ sort_link('petitioner', 'Petitioner') }}
+                {{ sort_link('petitioner_age', 'Age') }}
+                {{ sort_link('respondent', 'Respondent') }}
+                {{ sort_link('respondent_age', 'Age') }}
+                {{ sort_link('county', 'County') }}
+                {{ sort_link('marriage_date', 'Marriage') }}
+                {{ sort_link('dissolution_date', 'Dissolved') }}
+                {{ sort_link('children', 'Children') }}
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in rows %}
+              <tr>
+                <td>{{ row.petitioner }}</td>
+                <td>{% set petitioner_age = row.petitioner_age|string %}{% if petitioner_age|trim and petitioner_age|int != 0 %}{{ petitioner_age|int }}{% else %}Unknown{% endif %}</td>
+                <td>{{ row.respondent }}</td>
+                <td>{% set respondent_age = row.respondent_age|string %}{% if respondent_age|trim and respondent_age|int != 0 %}{{ respondent_age|int }}{% else %}Unknown{% endif %}</td>
+                <td>{{ row.county_name }}</td>
+                <td>{{ row.marriage_date }}</td>
+                <td>{{ row.dissolution_date }}</td>
+                <td>{% if row.children_under_18 is not none and row.children_under_18 != '' %}{% set children = row.children_under_18|int %}{% if children != 99 %}{{ children }}{% else %}Unknown{% endif %}{% endif %}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="8">No records found.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pagination-bar">
+          <div class="pagination-buttons">
+            {% if page > 1 %}<a href="{{ url_for('index', q=query, county=county, year=year, sort=sort, direction=direction, page=page-1) }}" class="button secondary">Previous</a>{% endif %}
+            {% if page * page_size < total %}<a class="button secondary" href="{{ url_for('index', q=query, county=county, year=year, sort=sort, direction=direction, page=page+1) }}">Next</a>{% endif %}
+          </div>
+          <form method="get" class="page-select">
+            <label>Jump to page</label>
+            <select name="page" onchange="this.form.submit()">
+              {% for page_option in page_options %}
+                <option value="{{ page_option }}" {% if page_option == page %}selected{% endif %}>{{ page_option }}</option>
+              {% endfor %}
+            </select>
+            <input type="hidden" name="q" value="{{ query }}">
+            <input type="hidden" name="county" value="{{ county }}">
+            <input type="hidden" name="year" value="{{ year }}">
+            <input type="hidden" name="sort" value="{{ sort }}">
+            <input type="hidden" name="direction" value="{{ direction }}">
+          </form>
+        </div>
+      </section>
+      {% else %}
+      <section class="empty-state">
+        <p class="prompt">Enter a name keyword, choose a year or county, then select Search to view records.</p>
+      </section>
+      {% endif %}
+    </main>
+  </body>
+</html>
