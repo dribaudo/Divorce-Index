@@ -6,6 +6,7 @@ from pathlib import Path
 
 from flask import Flask, g, render_template, request
 from sqlalchemy import text
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from db import get_engine
 
@@ -16,6 +17,15 @@ PAGE_SIZE = 50
 
 app = Flask(__name__)
 engine = get_engine()
+
+app.config.update(
+    SECRET_KEY=os.environ.get("SECRET_KEY", os.urandom(32).hex()),
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    SESSION_COOKIE_SECURE=True,
+    TEMPLATES_AUTO_RELOAD=False,
+)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 
 def get_db():
@@ -31,11 +41,29 @@ def close_db(_error: BaseException | None) -> None:
         db.close()
 
 
+@app.after_request
+def set_security_headers(response):
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; script-src 'none'; frame-ancestors 'none';"
+    if request.is_secure:
+        response.headers["Strict-Transport-Security"] = "max-age=63072000; includeSubDomains; preload"
+    return response
+
+
 @app.get("/")
 def index():
     query = request.args.get("q", "").strip()
+    if len(query) > 100:
+        query = query[:100]
     county = request.args.get("county", "").strip()
+    if len(county) > 100:
+        county = county[:100]
     year = request.args.get("year", "").strip()
+    if len(year) > 10:
+        year = year[:10]
     sort = request.args.get("sort", "")
     direction = request.args.get("direction", "asc")
     try:
@@ -46,7 +74,7 @@ def index():
     clauses, params = [], {}
     if query:
         combined_field = "LOWER(petitioner || ' ' || respondent)"
-        terms = [term for term in query.lower().split() if term]
+        terms = [term[:40] for term in query.lower().split() if term][:10]
         for idx, term in enumerate(terms, start=1):
             pattern = f"%{term}%"
             param_name = f"pattern_{idx}"
@@ -134,4 +162,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() in ("1", "true", "yes")
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")), debug=debug_mode)
